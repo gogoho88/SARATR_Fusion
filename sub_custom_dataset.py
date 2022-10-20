@@ -18,9 +18,9 @@ import torchvision.transforms as transforms
 
 class custom_dataset_baseline(Dataset):
     """
-    - dat_train: train dataset (C, W, H, B) 꼴, C0은 target, C1은 shadow
-    - label_list: 표적 label 이름 list
-    - use_sdw: shadow도 사용할지 결정(2:둘다 사용, 1: sdw만 사용, 0: tgt만 사용)
+    - dat_train: train dataset: (C, W, H, B), C0: target, C1: shadow
+    - label_list: Target label list
+    - use_sdw: 2: use both, 1: use only target, 2: use only shadow
     """
     def __init__(self, dat_train, dat_test, label_train, label_test, label_list, 
                 train=True, tgt_transform=None, sdw_transform=None, use_sdw=False, **kwargs):
@@ -33,12 +33,12 @@ class custom_dataset_baseline(Dataset):
         self.norm_param = kwargs['norm_param']
         
         if self.train:
-            if self.use_sdw==2:         # 둘 다 사용
+            if self.use_sdw==2:         
                 self.list_X = dat_train
-            elif self.use_sdw==1:       # sdw만 사용
+            elif self.use_sdw==1:       
                 self.list_X = dat_train[1,:,:,:]
                 self.list_X = np.expand_dims(self.list_X, axis=0)
-            else:                       # tgt만 사용
+            else:                      
                 self.list_X = dat_train[0,:,:,:]
                 self.list_X = np.expand_dims(self.list_X, axis=0)
             self.list_y = label_train
@@ -53,14 +53,12 @@ class custom_dataset_baseline(Dataset):
                 self.list_X = np.expand_dims(self.list_X, axis=0)
             self.list_y = label_test
             
-        self.list_X = self.list_X.transpose((3,1,2,0))  # BxWxHxC 형태로 변경
+        self.list_X = self.list_X.transpose((3,1,2,0))  # BxWxHxC 
         
-        #self.list_y 조정
         for i in range(len(label_list)):
             self.list_y[self.list_y == label_list[i]] = i
         self.list_y = np.array(self.list_y, dtype=int)
         
-    # 원래는 여기가 전처리
     def __len__(self):
         return len(self.list_X)
     
@@ -102,17 +100,9 @@ class custom_dataset_baseline(Dataset):
             
             X_ad = X_tgt
         
-        # tensor 변환
         X_f = torch.from_numpy(X_ad)
         
         # Normalization
-#        if torch.max(X_f) !=0:
-#        if self.use_sdw==2:
-#            X_f = 0 # 이부분 나중에 수정 필요
-#        elif self.use_sdw==1:
-#        X_f = (X_f-torch.min(X_f))/(torch.max(X_f)-torch.min(X_f))
-#        X_f = (-X_f)+1
-#        X_f = torch.where(X_f==1.,torch.tensor(0., dtype=float),X_f)
         if self.mode_norm==1:
             if self.use_sdw==2:
                 X_f[0,:,:] = torch.where(X_f[0,:,:]!=0, (X_f[0,:,:]-self.norm_param[0])/self.norm_param[1], torch.zeros(X_f[0,:,:].shape[0],X_f[0,:,:].shape[1],dtype=float))
@@ -127,7 +117,7 @@ class custom_dataset_baseline(Dataset):
                 X_f[1,:,:] = X_f[1,:,:]/torch.max(X_f[1,:,:])
             else:
                 X_f = X_f/torch.max(X_f)
-        elif self.mode_norm==3:     # 이건 inv norm이 어려울듯
+        elif self.mode_norm==3:     
             if self.use_sdw==2:
                 X_f[0,:,:] = (X_f[0,:,:]-torch.mean(X_f))/torch.std(X_f[0,:,:])
                 X_f[1,:,:] = (X_f[1,:,:]-torch.mean(X_f))/torch.std(X_f[1,:,:])

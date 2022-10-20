@@ -6,9 +6,8 @@ import math
 
 def make_savefolder(result_path):
     """
-    Result 저장하는 폴더 생성
     Output
-    - result_path+현재시간 폴더 생성 및 폴더 이름 output
+    - result_path+Current time foler output
     """
     date_time = datetime.datetime.now()
     date_time_path = date_time.strftime('%y%m%d%H%M')

@@ -1,17 +1,17 @@
 """
 # In[0]
-https://github.com/pytorch/vision/blob/master/torchvision/models/resnet.py 참조
-https://github.com/heartcored98/Standalone-DeepLearning/blob/master/Lec6/Lab8_CIFAR_100_with_ResNet.ipynb 참조
+https://github.com/pytorch/vision/blob/master/torchvision/models/resnet.py 
+https://github.com/heartcored98/Standalone-DeepLearning/blob/master/Lec6/Lab8_CIFAR_100_with_ResNet.ipynb 
 """
 import torch
 import torch.nn as nn
 from typing import Type, Any, Callable, Union, List, Optional
 
 """
-# In[0] Block Module 구현
+# In[0] Block Module
 """
 def conv3x3(in_planes, out_planes, stride=1):
-    """3x3 convolution with padding (stride 1에서는 크기 유지)"""
+    """3x3 convolution with padding"""
     return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride, padding=1, bias=False)
 
 
@@ -20,7 +20,7 @@ def conv1x1(in_planes, out_planes, stride=1):
     return nn.Conv2d(in_planes, out_planes, kernel_size=1, stride=stride, bias=False)
 
 def conv3x3_1d(in_planes, out_planes, stride=1):
-    """3x3 convolution with padding (stride 1에서는 크기 유지)"""
+    """3x3 convolution with padding"""
     return nn.Conv1d(in_planes, out_planes, kernel_size=3, stride=stride, padding=1, bias=False)
 
 def conv1x1_1d(in_planes, out_planes, stride=1):
@@ -59,9 +59,6 @@ class BasicBlock(nn.Module):
         return out
 
 class Bottleneck(nn.Module):
-    """
-    - 50 layer 이상의 network에서는 2층의 basic block대신 3층의 bottleneck block 사용
-    """
     expansion = 4
 
     def __init__(self, inplanes, planes, stride=1, base_width=64, downsample=None):
@@ -101,17 +98,12 @@ class Bottleneck(nn.Module):
         return out
 
 """
-# In[0] Resnet network 구현
+# In[0] Resnet network 
 """
 class ResNet(nn.Module):
 
     def __init__(self, block, layers, flag_abs=False, num_classes=11, width_per_group=64, zero_init_residual=False):
-        """
-        - block: [BasicBlock, Bottleneck] 중 무엇 선택할지
-        - layers (List[int]): 각 layer의 block 개수
-        - width_per_group (int): 각 block의 채널 수 정수배 할 때 사용 예를들어 원래 block 내에서 64-64 연결을 64-64*with로 바꿈
-        즉, 원래 inplanes 64 자체를 바꾸는 것은 아님
-        """
+
         super(ResNet, self).__init__()
         self.inplanes = 64
         self.base_width = width_per_group
@@ -127,10 +119,9 @@ class ResNet(nn.Module):
         self.layer2 = self._make_layer(block, 128, layers[1], stride=2)                 # //2
         self.layer3 = self._make_layer(block, 256, layers[2], stride=2)                 # //2
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2)                 # //2
-        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))                                     # (W,H)->1로 만듬
+        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))                                     # (W,H)->1
         self.fc = nn.Linear(512 * block.expansion, num_classes)
         
-        # 모듈들 초기화
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
                 nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
@@ -149,14 +140,14 @@ class ResNet(nn.Module):
 
     def _make_layer(self, block, planes, blocks, stride=1):
         downsample = None
-        if stride != 1 or self.inplanes != planes * block.expansion:         # identity mapping이 아닌 경우
+        if stride != 1 or self.inplanes != planes * block.expansion:         
             downsample = nn.Sequential(
-                conv1x1(self.inplanes, planes * block.expansion, stride),    # identity mapping 대신 downsampling 및 channel 조정
+                conv1x1(self.inplanes, planes * block.expansion, stride),    
                 nn.BatchNorm2d(planes * block.expansion),
             )
 
         layers = []
-        layers.append(block(self.inplanes, planes, stride, self.base_width, downsample))    # layer 내 맨 처음 block만 downsample
+        layers.append(block(self.inplanes, planes, stride, self.base_width, downsample))    
         self.inplanes = planes * block.expansion
         for _ in range(1, blocks):
             layers.append(block(self.inplanes, planes, base_width=self.base_width))
@@ -181,7 +172,7 @@ class ResNet(nn.Module):
         return x
 
 """
-# In[0] Resnet architecture 정의
+# In[0] Resnet architecture 
 """
 def _resnet(
     arch: str,
@@ -192,7 +183,7 @@ def _resnet(
     model = ResNet(block, layers, **kwargs)
     return model
 
-# ResNet 계열
+# ResNet 
 def resnet18(**kwargs: Any) -> ResNet:
     return _resnet('resnet18', BasicBlock, [2, 2, 2, 2], **kwargs)
 
@@ -212,7 +203,7 @@ def resnet101(**kwargs: Any) -> ResNet:
 def resnet152(**kwargs: Any) -> ResNet:
     return _resnet('resnet152', Bottleneck, [3, 8, 36, 3], **kwargs)
 
-# Wide ResNet 게열
+# Wide ResNet 
 def wide_resnet50_2(**kwargs: Any) -> ResNet:
     kwargs['width_per_group'] = 64 * 2
     return _resnet('wide_resnet50_2', Bottleneck, [3, 4, 6, 3], **kwargs)

@@ -18,20 +18,16 @@ import random
 
 import cv2
 
-"""
-- def(함수)는 test, plot용
-- class가 실제로 사용
-"""
 # =============================================================================
 # In[2] Rotation
 # =============================================================================
 def aug_rotate(d2_in, theta, flag_plot=False):
     """
-    - 입력 MSTAR 영상 theta만큼 rotate
+    - Rotate the image in theta
     
-    d2_in: 입력 MSTAR 영상
-    theta: 회전 각도 [degree]
-    flag_plot: output 영상 plot 할지
+    d2_in: Input MSTAR SAR
+    theta: angle [degree]
+    flag_plot: 1: plot the output
     """
     rot_matrix = cv2.getRotationMatrix2D((64, 64), theta, 1)
 
@@ -49,13 +45,11 @@ def aug_rotate(d2_in, theta, flag_plot=False):
 
 class Aug_Rotate(object):
     """
-    - 입력 MSTAR 영상 theta만큼 rotate
-    - 입력 영상 128x128
+    - Rotate the image in theta
+    - Input: 128x128 SAR image
     
-    d2_in: 입력 MSTAR 영상 (128x128 형태)
-    theta: 회전 각도 [degree]
-    
-    Out: 회전된 SAR 영상
+    d2_in: Input MSTAR SAR 
+    theta: angle [degree]
     """
     def __init__(self, theta):
         self.theta = theta
@@ -71,14 +65,11 @@ class Aug_Rotate(object):
 
 class Aug_RandomRotate(object):
     """
-    - 입력 MSTAR 영상 random theta 범위만큼 rotate
-    - 입력 영상 128x128
+    - Rotate the image randomly
     
-    d2_in: 입력 MSTAR 영상 (128x128 형태)
-    theta_start: 입력 회전 각도 범위 시작 [degree]
-    theta_end: 입력 회전 각도 범위 끝 [degree]
-    
-    Out: 회전된 SAR 영상
+    d2_in: Input MSTAR SAR 
+    theta_start: Angle_start [degree]
+    theta_end: Angle_end [degree]
     """
     def __init__(self, theta_start, theta_end):        
         self.theta_start = theta_start
@@ -100,13 +91,12 @@ class Aug_RandomRotate(object):
 # =============================================================================
 def aug_scaling(d2_in, R_scale=1.0, CR_scale=1.0, flag_plot=False):
     """
-    - 입력 MSTAR 영상 Range or Cross range 방향으로 scaling
+    - Scale the image in range or cross range domain
     
-    d2_in: 입력 MSTAR 영상
-    R_scale: Range 방향 scale factor
-    CR_scale: Cross Range 방향 scale factor
+    d2_in: Input MSTAR SAR 
+    R_scale: scale factor in range direction
+    CR_scale: scale factor in cross range direction
     
-    input size 홀수일 시 코두 수정 필요
     """
     
     if ((R_scale+CR_scale)/2) < 1:
@@ -166,15 +156,11 @@ def aug_scaling(d2_in, R_scale=1.0, CR_scale=1.0, flag_plot=False):
 
 class Aug_Scaling(object):
     """
-    - 입력 MSTAR 영상 Range or Cross range 방향으로 scaling
-    - 입력 영상 128x128
-    - 영상 중심을 (64,64)로 가정
+    - Scale the image in range or cross range domain
     
-    d2_in: 입력 MSTAR 영상
-    R_scale: Range 방향 scale factor
-    CR_scale: Cross Range 방향 scale factor
-    
-    Out: scale된 SAR 영상
+    d2_in: Input MSTAR SAR 
+    R_scale: scale factor in range direction
+    CR_scale: scale factor in cross range direction
     """
     def __init__(self, R_scale=1.0, CR_scale=1.0):        
         self.R_scale = R_scale
@@ -238,18 +224,15 @@ class Aug_Scaling(object):
 
 class Aug_RandomScaling(object):
     """
-    - 입력 MSTAR 영상 Range or Cross range 방향으로 random scaling
-    - 입력 영상 128x128
-    - 영상 중심을 (64,64)로 가정
-    - flag_save: 0.5의 확률로만 augment, 0.5확률로는 그대로
+    - Scale the image in range or cross range domain with random scaling factor
+    - Input image 128x128 with (64,64) centor
+    - flag_save: Augment with 0.5 probability
     
-    d2_in: 입력 MSTAR 영상
-    R_scale_start: Range 방향 scale factor 범위 start
-    R_scale_end: Range 방향 scale factor 범위 end
-    CR_scale_start: Cross Range 방향 scale factor 범위 start
-    CR_scale_end: Cross Range 방향 scale factor 범위 end
-    
-    Out: scale된 SAR 영상
+    d2_in: Input SAR image
+    R_scale_start: Scaling factor start in range domain
+    R_scale_end: Scaling factor end in range domain
+    CR_scale_start: Scaling factor start in cross range domain
+    CR_scale_end: Scaling factor end in cross range domain
     """
     def __init__(self, R_scale_start, R_scale_end, CR_scale_start, CR_scale_end, flag_save=False):        
         self.R_scale_start = R_scale_start
@@ -329,10 +312,10 @@ class Aug_RandomScaling(object):
 # =============================================================================
 def aug_randomerase(d2_in, erase_patchsize_list = [3,5,7], flag_plot=False):
     """
-    - 입력 MSTAR 영상 내 image를 random하게 제거
+    - Randomly erase some patch in the given image
     
-    d2_in: 입력 MSTAR 영상
-    erase_patchsize_list: 3x3, 5x5, 7x7 등 제거하는 patch
+    d2_in: Input SAR image
+    erase_patchsize_list: path size, e.g., 3x3, 5x5, 7x7 
     """
     d2_out = d2_in.copy()
     
@@ -364,14 +347,11 @@ def aug_randomerase(d2_in, erase_patchsize_list = [3,5,7], flag_plot=False):
 
 class Aug_RandomErasing(object):
     """
-    - 입력 MSTAR 영상 image를 random하게 제거
-    - 입력 영상 128x128 아니어도 됨
-    - 0.5의 확률로만 augment, 0.5확률로는 그대로
+    - Randomly erase some patch in the given image
+    - flag_save: Augment with 0.5 probability
     
-    d2_in: 입력 MSTAR 영상
-    erase_patchsize_list: 3x3, 5x5, 7x7 등 제거하는 patch
-    
-    Out: 특정 부분이 제거된 영상 (0.5) or 그대로 (0.5)
+    d2_in: Input SAR image
+    erase_patchsize_list: path size, e.g., 3x3, 5x5, 7x7
     """
     def __init__(self, erase_patchsize_list = [3,5,7]):        
         self.erase_patchsize_list = erase_patchsize_list
@@ -404,16 +384,15 @@ class Aug_RandomErasing(object):
 
 def aug_elastic_distortion(d2_in, sigma=15, kernel_size=5, alpha=1, flag_plot=False):
     """
-    - 입력 MSTAR 영상 elastic distortion을 통한 data augmentation
+    - Elastic distortion for SAR image
     - S. A. Wagner, “SAR ATR by a combination of convolutional neural network and support vector machines,” 
     IEEE Trans. Aerosp. Electron. Syst., vol. 52, no. 6, pp. 2861–2872, Dec. 2016.
-    - https://hj-harry.github.io/HJ-blog/2019/01/30/Elastic-distortion.html
-    참조
+    - Refer to https://hj-harry.github.io/HJ-blog/2019/01/30/Elastic-distortion.html
     
-    d2_in: 입력 MSTAR 영상 in dBscale
-    sigma: Smoothing Kernel의 std (클수록 왜곡 적어짐)
-    kernel_size: Smoothing kernel 크기 (클수록 target도 많이 smooth되는듯)    
-    alpha: amplitude scaling factor (클수록 왜곡 엄청심해짐)
+    d2_in: Input SAR image in dBscale
+    sigma: Std of Smoothing Kernel (higher sigma -> lower distortion)
+    kernel_size: Size of Smoothing kernel (higher size -> higher distortion)    
+    alpha: amplitude scaling factor (higher alpha -> higher distortion)
     """
     [sy,sx] = d2_in.shape
     dx = np.random.uniform(-1, 1, (sx,sy))
@@ -450,20 +429,15 @@ def aug_elastic_distortion(d2_in, sigma=15, kernel_size=5, alpha=1, flag_plot=Fa
 
 class Aug_RandomElasticDistortion(object):
     """
-    - 입력 MSTAR 영상 elastic distortion을 통한 data augmentation
+    - Elastic distortion for SAR image
     - S. A. Wagner, “SAR ATR by a combination of convolutional neural network and support vector machines,” 
     IEEE Trans. Aerosp. Electron. Syst., vol. 52, no. 6, pp. 2861–2872, Dec. 2016.
-    - https://hj-harry.github.io/HJ-blog/2019/01/30/Elastic-distortion.html
-    참조
-    - 입력 영상 128x128 아니어도 됨
-    - 0.5의 확률로만 augment, 0.5확률로는 그대로
+    - Refer to https://hj-harry.github.io/HJ-blog/2019/01/30/Elastic-distortion.html
     
-    d2_in: 입력 MSTAR 영상 in dBscale
-    sigma_start: Smoothing Kernel의 std 범위 시작 (클수록 왜곡 적어짐)
-    sigma_end: Smoothing Kernel의 std 범위 꿑 (클수록 왜곡 적어짐)
-    kernel_size_start: Smoothing kernel 크기 범위 시작 (클수록 target도 많이 smooth되는듯)    
-    kernel_size_end: Smoothing kernel 크기 범위 끝 (클수록 target도 많이 smooth되는듯)    
-    alpha: amplitude scaling factor (클수록 왜곡 엄청심해짐)
+    d2_in: Input SAR image in dBscale
+    sigma: Std of Smoothing Kernel (higher sigma -> lower distortion)
+    kernel_size: Size of Smoothing kernel (higher size -> higher distortion)    
+    alpha: amplitude scaling factor (higher alpha -> higher distortion)
     """
     def __init__(self, sigma_start, sigma_end, kernel_size_start=5, kernel_size_end=5, alpha_start=1, alpha_end=1):        
         self.sigma_start = sigma_start

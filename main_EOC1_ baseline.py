@@ -148,23 +148,33 @@ COM_test_tgt = data_load['COM_test_tgt']
 COM_test_sdw = data_load['COM_test_sdw']
 
 """
-# 문제 있는 index(SAR 영상 이상)
+# Problematic index
 # test
 - BTR60: 1343~1345, 1381~1382, 1407, 1443~1447, 1487~1488, 1490, 1489
 """
-# 문제 있는 index 제거 (train)
 X_train_tgt_adj = X_train_tgt_cart
 X_train_sdw_adj = X_train_sdw_cart
 y_train_adj = y_train
 COM_train_tgt_adj = COM_train_tgt
 COM_train_sdw_adj = COM_train_sdw
-# 문제 있는 index 제거 (test)
-test_del_idx = [1106]
-X_test_tgt_adj = np.delete(X_test_tgt_cart,test_del_idx, axis=2)
-X_test_sdw_adj = np.delete(X_test_sdw_cart,test_del_idx, axis=2)
-y_test_adj = np.delete(y_test, test_del_idx, axis=0)
-COM_test_tgt_adj = np.delete(COM_test_tgt, test_del_idx, axis=1)
-COM_test_sdw_adj = np.delete(COM_test_sdw, test_del_idx, axis=1)
+X_test_tgt_adj = X_test_tgt_cart
+X_test_sdw_adj = X_test_sdw_cart
+y_test_adj = y_test
+COM_test_tgt_adj = COM_test_tgt
+COM_test_sdw_adj = COM_test_sdw
+# # Eliminate problematic index (train)
+# X_train_tgt_adj = X_train_tgt_cart
+# X_train_sdw_adj = X_train_sdw_cart
+# y_train_adj = y_train
+# COM_train_tgt_adj = COM_train_tgt
+# COM_train_sdw_adj = COM_train_sdw
+# # Eliminate problematic index (test)
+# test_del_idx = [1106]
+# X_test_tgt_adj = np.delete(X_test_tgt_cart,test_del_idx, axis=2)
+# X_test_sdw_adj = np.delete(X_test_sdw_cart,test_del_idx, axis=2)
+# y_test_adj = np.delete(y_test, test_del_idx, axis=0)
+# COM_test_tgt_adj = np.delete(COM_test_tgt, test_del_idx, axis=1)
+# COM_test_sdw_adj = np.delete(COM_test_sdw, test_del_idx, axis=1)
 
 X_train_cart = np.zeros((2,prepro_size,prepro_size,np.shape(X_train_tgt_adj)[2]), dtype='float')
 X_test_cart = np.zeros((2,prepro_size,prepro_size,np.shape(X_test_tgt_adj)[2]), dtype='float')
@@ -181,7 +191,7 @@ for i in range(X_test_tgt_adj.shape[2]):
 for i in range(X_train_tgt_adj.shape[2]):
     X_temp = X_train_sdw_adj[:,:,i]
     X_adj = np.zeros(X_temp.shape, dtype=float)
-    X_adj[-96:,:] = X_temp[1:97,:] # 32만큼 밑으로 밀어냄
+    X_adj[-96:,:] = X_temp[1:97,:] 
     X_adj[0:32,:] = X_temp[-32:,:]
     COM_sdw = COM_train_sdw_adj[:,i].astype('int')
     COM_sdw[0] = COM_sdw[0]+32
@@ -189,7 +199,7 @@ for i in range(X_train_tgt_adj.shape[2]):
 for i in range(X_test_tgt_adj.shape[2]):
     X_temp = X_test_sdw_adj[:,:,i]
     X_adj = np.zeros(X_temp.shape, dtype=float)
-    X_adj[-96:,:] = X_temp[1:97,:] # 32만큼 밑으로 밀어냄
+    X_adj[-96:,:] = X_temp[1:97,:] 
     X_adj[0:32,:] = X_temp[-32:,:]
     COM_sdw = COM_test_sdw_adj[:,i].astype('int')
     COM_sdw[0] = COM_sdw[0]+32
@@ -198,7 +208,7 @@ for i in range(X_test_tgt_adj.shape[2]):
 
 
 # =============================================================================
-# In[5] Norm 상수 계산
+# In[5] Normalization & Custom dataset
 # =============================================================================
 tgt_data = X_train_cart[0,:,:,:].copy()
 sdw_data = X_train_cart[1,:,:,:].copy()
@@ -271,12 +281,10 @@ criterion = nn.CrossEntropyLoss().to(device)
 # =============================================================================
 # In[5] Network Training
 # =============================================================================
-# 모델의 state_dict 출력
 print("Model's state_dict:")
 for param_tensor in model.state_dict():
     print(param_tensor, "\t", model.state_dict()[param_tensor].size())
 
-# 옵티마이저의 state_dict 출력
 print("Optimizer's state_dict:")
 for var_name in optimizer.state_dict():
     print(var_name, "\t", optimizer.state_dict()[var_name]) 
@@ -373,30 +381,30 @@ print("=============Learning Finished=============")
 # =============================================================================
 if flag_saveresult:
     result_path_adj = os.path.join(result_path,mode,SAR_data_type,backbone)
-    result_folder_path = sub_utils.make_savefolder(result_path=result_path_adj) # result_path 폴더 생성
+    result_folder_path = sub_utils.make_savefolder(result_path=result_path_adj)
 result = {}
 result['train_losses'] = train_loss_list
 result['test_losses'] = test_loss_list
 result['train_accs'] = train_acc_list
 result['test_accs'] = test_acc_list
 if flag_saveresult:
-    # Best model weight 저장
+    # Save Best model weight
     best_model_name = 'Best.pth'
     best_model_name_full = os.path.join(result_folder_path,best_model_name)
     torch.save(best_state, best_model_name_full)
-    # Result dictionary 저장    
+    # Save Result dictionary
     result_name = 'Result_summary.pickle'
     result_name_full = os.path.join(result_folder_path,result_name)
     with open(result_name_full, 'wb') as f:
         pickle.dump(result, f, pickle.HIGHEST_PROTOCOL)
-    # 현재 code를 script로 저장
+    # Save code script
     import datetime
 
     current_file = os.path.realpath(__file__)
     current_time = datetime.datetime.now()
     current_time_path = current_time.strftime('%y%m%d%H%M')
-    shutil.copy(current_file,result_folder_path)    # 현재 파일을 result path에 복사
+    shutil.copy(current_file,result_folder_path)
     os.rename(os.path.join(result_folder_path,os.path.basename(__file__)),
-            os.path.join(result_folder_path,'['+SAR_data_type+'_'+current_time_path+']'+os.path.basename(__file__)))  # 복사한 파일 이름 수정
+            os.path.join(result_folder_path,'['+SAR_data_type+'_'+current_time_path+']'+os.path.basename(__file__)))
 
 a = 1

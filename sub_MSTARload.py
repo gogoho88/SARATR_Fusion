@@ -1,13 +1,11 @@
 """
 Created on Fri Mar 27 21:54:13 2020
 
-참조
+Refer to
 https://github.com/hamza-latif/MSTAR_tensorflow/blob/master/readmstar.py
 
-MSAR dataset load하는 code
+Load MSTAR Dataset
 
--python 2에 적합하게 작성된 code를 python 3에 맞게 수정
--phase data도 load하도록 수정 - 현재는 그냥 m만 사용
 """
 # =============================================================================
 # In[1]
@@ -79,7 +77,7 @@ def readMSTARFile(filename):
     data_m = data[:rows*cols]
     data_m = data_m.reshape((rows,cols))
     data_m = data_m[roffset:(128+roffset),coffset:(128+coffset)]
-    # phase도 사용할 시
+    # For using phase together
 #    data_p = data[rows*cols:]
 #    data_p = data_p.reshape((rows,cols))
 #    data_p = data_p[roffset:(128+roffset),coffset:(128+coffset)]
@@ -140,7 +138,7 @@ def readMSTARFile_phase(filename):
     data_m = data[:rows*cols]
     data_m = data_m.reshape((rows,cols))
     data_m = data_m[roffset:(128+roffset),coffset:(128+coffset)]
-    # phase도 사용할 시
+    # For using phase together
     data_p = data[rows*cols:]
     data_p = data_p.reshape((rows,cols))
     data_p = data_p[roffset:(128+roffset),coffset:(128+coffset)]
@@ -428,7 +426,7 @@ def load_MSTAR_SOC(dat_path, dBscale=True, Target_segment=True, Shadow_segment=T
     
 
 # clutter load
-#file_path = 'D://8 .과제/7. ADD_SARiR퓨전/4. Data/MSTAR/PublicClutter/MSTAR_PUBLIC_CLUTTER_CD2/CLUTTER/15_DEG'
+#file_path = 'D://4. Data/MSTAR/PublicClutter/MSTAR_PUBLIC_CLUTTER_CD2/CLUTTER/15_DEG'
 #files = os.listdir(file_path)
 #clut_ind = 8
 #filename = os.path.join(file_path,files[clut_ind])

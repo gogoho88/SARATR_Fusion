@@ -18,13 +18,13 @@ import torch.optim as optim
 
 from sub_lsoftmax import LSoftmaxLinear
 # =============================================================================
-# In[1] AConvNet 계열
+# In[1] AConvNet
 # =============================================================================
 # AConvNet
 class AConvNet_OGN(nn.Module):
     """
     - Original AConvNet Architecture
-    - 참조: S. Chen, H. Wang, F. Xu, and Y. Q. Jin, “Target Classification Using the Deep Convolutional Networks for SAR Images,” 
+    - S. Chen, H. Wang, F. Xu, and Y. Q. Jin, “Target Classification Using the Deep Convolutional Networks for SAR Images,” 
     IEEE Trans. Geosci. Remote Sens., vol. 54, no. 8, pp. 4806–4817, 2016.
     
     - Nx1x88x88 size Input
@@ -73,8 +73,8 @@ class AConvNet_OGN(nn.Module):
 
 class AConvNet_64(nn.Module):
     """
-    - Modified AConvNet Architecture -> 64x64 input을 받도록 kernel size 약간 수정
-    - 참조: S. Chen, H. Wang, F. Xu, and Y. Q. Jin, “Target Classification Using the Deep Convolutional Networks for SAR Images,” 
+    - Modified AConvNet Architecture -> 64x64 input
+    - S. Chen, H. Wang, F. Xu, and Y. Q. Jin, “Target Classification Using the Deep Convolutional Networks for SAR Images,” 
     IEEE Trans. Geosci. Remote Sens., vol. 54, no. 8, pp. 4806–4817, 2016.
     
     - Nx1x64x64 size Input
@@ -123,7 +123,7 @@ class AConvNet_64(nn.Module):
 
 class AConvNet_60(nn.Module):
     """
-    - Modified AConvNet Architecture -> 64x64 input을 받도록 kernel size 약간 수정
+    - Modified AConvNet Architecture -> 60x60 input
     - 참조: S. Chen, H. Wang, F. Xu, and Y. Q. Jin, “Target Classification Using the Deep Convolutional Networks for SAR Images,” 
     IEEE Trans. Geosci. Remote Sens., vol. 54, no. 8, pp. 4806–4817, 2016.
     
@@ -175,11 +175,11 @@ class AConvNet_60(nn.Module):
 
 class AConvNet_128(nn.Module):
     """
-    - Modified AConvNet Architecture -> 128x128 input을 받도록 kernel size 약간 수정
-    - 참조: S. Chen, H. Wang, F. Xu, and Y. Q. Jin, “Target Classification Using the Deep Convolutional Networks for SAR Images,” 
+    - Modified AConvNet Architecture -> 128x128 input
+    - S. Chen, H. Wang, F. Xu, and Y. Q. Jin, “Target Classification Using the Deep Convolutional Networks for SAR Images,” 
     IEEE Trans. Geosci. Remote Sens., vol. 54, no. 8, pp. 4806–4817, 2016.
     
-    - Nx1x60x60 size Input
+    - Nx1x128x128 size Input
     """
     def __init__(self, n_classes, H_size=[16,32,64,128,128]):
         super(AConvNet_128, self).__init__()
@@ -231,7 +231,8 @@ class AConvNet_128(nn.Module):
 
 class AConvNet_60_minpool(nn.Module):
     """
-    - Modified AConvNet Architecture -> 64x64 input을 받도록 kernel size 약간 수정
+    - Modified AConvNet Architecture -> 60x60 input
+    - Min pooling
     - 참조: S. Chen, H. Wang, F. Xu, and Y. Q. Jin, “Target Classification Using the Deep Convolutional Networks for SAR Images,” 
     IEEE Trans. Geosci. Remote Sens., vol. 54, no. 8, pp. 4806–4817, 2016.
     
@@ -293,7 +294,7 @@ class AConvNet_60_minpool(nn.Module):
 class LMBNCNN_OGN(nn.Module):
     """
     - Original LM-BN-CNN Architecture
-    - 참조: F. Zhou, L. Wang, X. Bai, and Y. Hui, “SAR ATR of Ground Vehicles Based on LM-BN-CNN,” 
+    - F. Zhou, L. Wang, X. Bai, and Y. Hui, “SAR ATR of Ground Vehicles Based on LM-BN-CNN,” 
     IEEE Trans. Geosci. Remote Sens., vol. 56, no. 12, pp. 7282–7293, Dec. 2018.
     
     - Nx1x60x60 size Input
@@ -361,7 +362,7 @@ class LMBNCNN_OGN(nn.Module):
 # ESENet
 class SELayer(nn.Module):
     """
-    - 참조: https://github.com/moskomule/senet.pytorch/blob/master/senet/se_module.py
+    - https://github.com/moskomule/senet.pytorch/blob/master/senet/se_module.py
     """
     def __init__(self, channel, reduction):
         super(SELayer, self).__init__()
@@ -399,7 +400,7 @@ class ESELayer(nn.Module):
 class ESENet_OGN(nn.Module):
     """
     - Original ESENet Architecture
-    - 참조: L. Wang, X. Bai, and F. Zhou, “SAR ATR of Ground Vehicles Based on ESENet,” 
+    - L. Wang, X. Bai, and F. Zhou, “SAR ATR of Ground Vehicles Based on ESENet,” 
     Remote Sens., vol. 11, no. 11, p. 1316, Jun. 2019.
     
     - Nx1x60x60 size Input
@@ -468,8 +469,8 @@ class ESENet_OGN(nn.Module):
         
 class AConvNet_60_CHfuse(nn.Module):
     """
-    - Modified AConvNet Architecture -> 64x64 input을 받도록 kernel size 약간 수정
-    - 참조: S. Chen, H. Wang, F. Xu, and Y. Q. Jin, “Target Classification Using the Deep Convolutional Networks for SAR Images,” 
+    - Modified AConvNet Architecture -> 60x60 input
+    - S. Chen, H. Wang, F. Xu, and Y. Q. Jin, “Target Classification Using the Deep Convolutional Networks for SAR Images,” 
     IEEE Trans. Geosci. Remote Sens., vol. 54, no. 8, pp. 4806–4817, 2016.
     
     - Nx1x60x60 size Input
@@ -518,8 +519,7 @@ class AConvNet_60_CHfuse(nn.Module):
     
 class AConvNet_60_fuse_late(nn.Module):
     """
-    - AConvNet 기반 late fusion (10x1 + 10x1 -> 10x1)
-    - 마지막에 AconvNet처럼 10channel로 바로 확률vector하는 것 대신 channel 수 넉넉하게 32로 맞춘 후 FC 한번 더 거침
+    - AConvNet-based late fusion (10x1 + 10x1 -> 10x1)
     
     - Nx1x60x60 size Input
     """
@@ -618,7 +618,7 @@ class AConvNet_60_fuse_late(nn.Module):
     
 class AConvNet_60_DisReg(nn.Module):
     """
-    - 마지막에 AconvNet처럼 10channel로 바로 확률vector하는 것 대신 channel 수 넉넉하게 32로 맞춘 후 FC 한번 더 거침
+    - Fusion with More FC layer
     - Nx1x60x60 size Input
     """
     def __init__(self, n_classes, H_size=[16,32,64,128,32]):
@@ -758,7 +758,6 @@ class AConvNet_60_DisReg(nn.Module):
     
 class AConvNet_60_DisReg_SE_v1(nn.Module):
     """
-    - 마지막에 AconvNet처럼 10channel로 바로 확률vector하는 것 대신 channel 수 넉넉하게 32로 맞춘 후 FC 한번 더 거침
     - Nx1x60x60 size Input
     """
     def __init__(self, n_classes, H_size=[16,32,64,128,32], r=4):
@@ -905,7 +904,6 @@ class AConvNet_60_DisReg_SE_v1(nn.Module):
     
 class AConvNet_60_DisReg_SE_v2(nn.Module):
     """
-    - 마지막에 AconvNet처럼 10channel로 바로 확률vector하는 것 대신 channel 수 넉넉하게 32로 맞춘 후 FC 한번 더 거침
     - Nx1x60x60 size Input
     - ADD SE layer on the ealiest layer
     """
@@ -1056,9 +1054,8 @@ class AConvNet_60_DisReg_SE_v2(nn.Module):
     
 class AConvNet_60_DisReg_SE_v3(nn.Module):
     """
-    - 마지막에 AconvNet처럼 10channel로 바로 확률vector하는 것 대신 channel 수 넉넉하게 32로 맞춘 후 FC 한번 더 거침
     - Nx1x60x60 size Input
-    - v2에서 SE->ESE로 변경
+    - v2->v3: SE->ESE
     """
     def __init__(self, n_classes, H_size=[16,32,64,128,32], r=4):
         super(AConvNet_60_DisReg_SE_v3, self).__init__()
@@ -1206,8 +1203,8 @@ class AConvNet_60_DisReg_SE_v3(nn.Module):
 
 class AConvNet_64_GRIF(nn.Module):
     """
-    - 마지막에 AconvNet처럼 10channel로 바로 확률vector하는 것 대신 channel 수 넉넉하게 32로 맞춘 후 FC 한번 더 거침
     - Nx1x60x60 size Input
+    - Fusion with attention module
     """
     def __init__(self, n_classes, H_size=[16,32,64,128,64]):
         super(AConvNet_64_GRIF, self).__init__()
@@ -1335,7 +1332,7 @@ class AConvNet_64_GRIF(nn.Module):
 
 class AConvNet_64_GRIF2(nn.Module):
     """
-    - 마지막에 AconvNet처럼 10channel로 바로 확률vector하는 것 대신 channel 수 넉넉하게 32로 맞춘 후 FC 한번 더 거침
+    - Fusion with GRIF2 attention module
     - Nx1x60x60 size Input
     """
     def __init__(self, n_classes, H_size=[16,32,64,128,64]):
@@ -1465,13 +1462,14 @@ class AConvNet_64_GRIF2(nn.Module):
 
 """
 Module
+Fusion with GRIF attention module
 """
 class GRIF(nn.Module):
     def __init__(self, channel_in, kernel_in):
         super(GRIF, self).__init__()
         self.kernel_in = kernel_in
 
-        if self.kernel_in != 1: # conv layer인 경우
+        if self.kernel_in != 1: # for conv layer
             self.module_fuse = nn.Conv2d(channel_in, 2, (self.kernel_in, self.kernel_in), stride=1, padding=0)
         else:
             self.module_fuse = nn.Linear(channel_in, 2)

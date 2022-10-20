@@ -39,16 +39,15 @@ def prepro_DB(d2_in):
 # =============================================================================
 def prepro_targetseg(d2_in, th_bin_min=30, th_target_std=50, th_count=1800, tgt_range=[30,100,30,100], flag_peri=True, morp_ind = 1, flag_plot=False):
     """
-    - 입력 MSTAR 영상으로부터 표적 segment
+    - Target segment
     - R. Meth, “Target/shadow segmentation and aspect estimation in synthetic aperture radar imagery,” 
     in Proc. SPIE 3370, Algorithms for Synthetic Aperture Radar Imagery V, 1998, vol. 23, no. 5, pp. 188–196.   
     - F. Zhou, L. W
     ang, X. Bai, and Y. Hui, “SAR ATR of Ground Vehicles Based on LM-BN-CNN,” 
     IEEE Trans. Geosci. Remote Sens., vol. 56, no. 12, pp. 7282–7293, Dec. 2018.
-    참조
     
-    th_count: 위에서부터 순서대로 몇 pixel 넘어가면 클러터라고 생각되는지
-    tgt_range: 표적이 100% 있다고 생각되는 지역
+    th_count: histogram threshold
+    tgt_range: region that the target certainly exists
     """
     # d2_in: log-scale input
     
@@ -74,7 +73,7 @@ def prepro_targetseg(d2_in, th_bin_min=30, th_target_std=50, th_count=1800, tgt_
                 cord_y_total, cord_x_total = np.where(d2_mask==True)
                 break
     
-    # 위치 정보 이용하여 mask 조정
+    # Adjust mask
     d2_mask[0:tgt_range[0],:] = False
     d2_mask[tgt_range[1]:128,:] = False
     d2_mask[:,0:tgt_range[2]] = False
@@ -127,7 +126,7 @@ def prepro_targetseg(d2_in, th_bin_min=30, th_target_std=50, th_count=1800, tgt_
             cont_area[i] = cv2.contourArea(cont_temp)
         
         ###########################################################################
-#         v1: max area만 선택
+#       v1: choose only max area
         cont_right = np.argmax(cont_area)    
         cont_right_ind = cont_ind_cand[cont_right]
         
@@ -143,7 +142,7 @@ def prepro_targetseg(d2_in, th_bin_min=30, th_target_std=50, th_count=1800, tgt_
                     d2_adj[i,j] = flag_cont
         
         ###########################################################################
-        # v2: max area + (그냥 area 70넘고 중심 64로부터 +-15 이내에 있으면 다 선택)
+        # v2: choose max area + (area>70 &  within +-15 from the center 64)
 #        cont_right = np.where(cont_area>70)
 #        cont_right_ind = cont_ind_cand[cont_right]
 #        cont_max = np.argmax(cont_area)
@@ -184,7 +183,7 @@ def prepro_targetseg(d2_in, th_bin_min=30, th_target_std=50, th_count=1800, tgt_
                 if flag_cont>=0:
                     d2_adj[i,j] = flag_cont
         
-    # 테두리도 포함
+    # include contour
     if flag_peri==True:
         d2_adj[cord_y_cont, cord_x_cont] = 1.
         
@@ -234,24 +233,24 @@ def prepro_targetseg(d2_in, th_bin_min=30, th_target_std=50, th_count=1800, tgt_
 # =============================================================================
 def prepro_shadowseg(d2_in, th_shadow_per=1/3, th_count=15, sdw_range=[5,80,30,99], flag_peri=True, flag_plot=False):
     """
-    - 입력 MSTAR 영상으로부터 shadow segment
+    - Shadow segmentation from the input SAR
     - M. Chang and X. You, “Target recognition in SAR images based on information-decoupled representation,”
     Remote Sens., vol. 10, no. 1, 2018.
-    참조
     
-    d2_in: 입력 MSTAR 영상 in dBscale
-    th_shadow_per: 영상 amplitude의 밑에서 얼만큼을 shadow 및 clutter로 볼 것인지
-    th_count: Count filter에서 5x5 filter 내 몇개 이상의 pixel이 있을 시 shadow로 볼 것인지
-    sdw_range: shadow가 있을 것이라 예상되는 범위[i: 1~2 , j:3~4]
+    
+    d2_in: Input MSTAR SAR in dB scale
+    th_shadow_per: threshold for shadow+clutter
+    th_count: Counting filter threshold
+    sdw_range: region that the shadow certainly exists[i: 1~2 , j:3~4]
     """
     
-    #1 th를 통해 큰 값 제거
+    #1 Thresholding
     d2_norm = (d2_in-np.min(d2_in))/(np.max(d2_in)-np.min(d2_in))
     d1_norm = np.reshape(d2_norm, [16384])
     d1_norm = np.sort(d1_norm)
     
     th_shadow = d1_norm[np.int(16384*th_shadow_per)]
-    d2_afterth = np.where(d2_norm>th_shadow, 0, 1) #th를 넘는 것은 0으로 하고, 나머지는 그대로
+    d2_afterth = np.where(d2_norm>th_shadow, 0, 1)
     
     #2 Count filter
     d2_count = np.zeros((128,128), dtype=float)
@@ -268,7 +267,7 @@ def prepro_shadowseg(d2_in, th_shadow_per=1/3, th_count=15, sdw_range=[5,80,30,9
                              [1,1,1]), np.uint8)  #4x4
     d2_morp = cv2.morphologyEx(d2_count, cv2.MORPH_CLOSE, morp_kernel3)
     
-    #4 가장 큰 Countour만 선택
+    #4 Select only the largest contour
     contours, _ = cv2.findContours(np.uint8(d2_morp), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     cont_size = np.zeros(len(contours))
     for i in range(len(contours)):
@@ -285,11 +284,11 @@ def prepro_shadowseg(d2_in, th_shadow_per=1/3, th_count=15, sdw_range=[5,80,30,9
             if flag_cont>=0:
                 d2_adj[i,j] = flag_cont
 
-    # 테두리도 포함
+    # Include contour
     if flag_peri==True:
         d2_adj[cord_y_cont, cord_x_cont] = 1.
     
-    #5 Mast
+    #5 Mask
     d2_out = d2_norm*d2_adj
 
     
@@ -328,11 +327,11 @@ def prepro_shadowseg(d2_in, th_shadow_per=1/3, th_count=15, sdw_range=[5,80,30,9
 # =============================================================================
 def prepro_crop(d2_in, SAR_center=[64,64], crop_size=[64,64]):
     """
-    - 입력 MSTAR 영상 crop
+    - Crop input MSTAR SAR
     
-    d2_in: 입력 MSTAR 영상 (HxW 꼴)
-    SAR_center: Crop 영상의 중심 (y,x) 좌표
-    crop_size: Crop 영상의 (height,width)
+    d2_in: Input MSTAR SAR (HxW)
+    SAR_center: Center coordinate (y,x)
+    crop_size: Crop size (height,width)
     """
     if ((SAR_center[0] < int(crop_size[0]/2)) or (SAR_center[1] < int(crop_size[1]/2))
         or ((SAR_center[0]+int(crop_size[0]/2)) > d2_in.shape[0]) or ((SAR_center[1]+int(crop_size[1]/2)) > d2_in.shape[1])):
@@ -346,11 +345,11 @@ def prepro_crop(d2_in, SAR_center=[64,64], crop_size=[64,64]):
 
 class Prepro_Crop(object):
     """
-    - 입력 MSTAR 영상 crop
+    - Crop input MSTAR SAR
     
-    d2_in: 입력 MSTAR 영상
-    SAR_center: Crop 영상의 중심 (y,x) 좌표
-    crop_size: Crop 영상의 (height,width)
+    d2_in: Input MSTAR SAR (HxW)
+    SAR_center: Center coordinate (y,x)
+    crop_size: Crop size (height,width)
     """
     def __init__(self, SAR_center, crop_size):
         self.SAR_center = SAR_center
@@ -427,22 +426,18 @@ def plot_segmentation(SAR_data, SAR_label, label_list):
 def prepro_polarmapping(d2_in, flag_shadow, Nr=60, Rmin=0, Rmax=40, 
                         Ntheta=60, thetamin=0, thetamax=2*np.pi, flag_center=False, flag_plot=False):
     """
-    - 입력 MSTAR 영상 을 polar mapping 수행 
+    - Polar transformation of input SAR image
     
-    d2_in: 입력 MSTAR 영상 (semented) (128x128 꼴)
-    flag_shadow: True-shadow를 polar 변환 / False-target을 polar 변환
-    Nr: R(반지름) 방향으로 몇개를 sampling 할지
-    Rmin: 중심으로부터 Rmin부터 sampling 시작
-    Rmax: Rmin부터 Rmax까지 Nr만큼 sampling Rmax-40은 대략 표적이 최대로 분포한 범위 
-    60x60에서는 아래위가 중심으로부터 30인데 대각선은 42.42인 점 고려
+    d2_in: Input MSTAR SAR (semented) (128x128)
+    flag_shadow: True: polar transformation of shadow / False: polar transformation of target
+    Nr: Sampling numer in R direction
     
-    d2_out: 출력 mapping 영상 (NrxNtheta 꼴)
+    d2_out: Transformed output (NrxNtheta 꼴)
     """
     R_vec = np.linspace(Rmin, Rmax, Nr)
     theta_vec = np.linspace(thetamin, thetamax, Ntheta)
     
     if flag_shadow==False:
-        # 중심 계산기 side 0으로 해놓고 계산하는 것 추가
         if np.sum(flag_center)==False:
             center_tgt = ndi.center_of_mass(d2_in)
         else:
@@ -474,14 +469,14 @@ def prepro_polarmapping(d2_in, flag_shadow, Nr=60, Rmin=0, Rmax=40,
             plt.imshow(d2_polar, cmap=plt.get_cmap('gray'))
     else:
         d2_sdw_adj = np.zeros(d2_in.shape, dtype=float)
-        d2_sdw_adj[-96:,:] = d2_in[0:96,:] # 32만큼 밑으로 밀어냄
+        d2_sdw_adj[-96:,:] = d2_in[0:96,:] 
         d2_sdw_adj[0:32,:] = d2_in[-32:,:]
         
         if np.sum(flag_center)==False:
             center_sdw = ndi.center_of_mass(d2_sdw_adj)
         else:
             center_sdw = flag_center.copy()
-            center_sdw[0] = center_sdw[0]+32 # 밀어냈으므로 center도 32만큼 같이 밀어냄
+            center_sdw[0] = center_sdw[0]+32
         
         cord_cart_x = np.arange(0,d2_in.shape[1], dtype=float)
         cord_cart_y = np.arange(0,d2_in.shape[0], dtype=float)
